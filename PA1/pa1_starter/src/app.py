@@ -13,6 +13,8 @@ tasks = {
     2: {"id": 2, "description": "go running", "done": False},
 }
 
+task_id_counter = 3
+
 
 @app.route("/")
 def hello_world():
@@ -37,7 +39,15 @@ def create_task():
    task[task_id_counter] = task
    task_id_counter+=1
    return json.dumps(task), 201
+
 # Get a task by ID
+@app.route("/tasks/<int:task_id>)/")
+def get_task(task_id):
+    task = tasks.get(task_id)
+    if not task:
+        return json.dumps({"Error": "task not found"}), 404
+    return json.dumps(task), 200
+    
 # Update a task
 # Delete a task
 
