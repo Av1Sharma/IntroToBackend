@@ -36,7 +36,7 @@ def create_task():
    body = json.loads(request.data)
    description = body["description"]
    task = {"id": task_id_counter, "description": description, "done": False}
-   task[task_id_counter] = task
+   tasks[task_id_counter] = task
    task_id_counter+=1
    return json.dumps(task), 201
 
