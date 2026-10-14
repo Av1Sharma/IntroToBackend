@@ -17,6 +17,11 @@ def hello_world():
 
 # Create an application that manages all your todos to do
 
+# Get all tasks
+# Create a task
+# Get a task by ID
+# Update a task
+# Delete a task
 
 
 if __name__ == "__main__":
