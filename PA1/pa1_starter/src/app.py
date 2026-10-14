@@ -41,7 +41,7 @@ def create_task():
    return json.dumps(task), 201
 
 # Get a task by ID
-@app.route("/tasks/<int:task_id>)/")
+@app.route("/tasks/<int:task_id>/")
 def get_task(task_id):
     task = tasks.get(task_id)
     if not task:
