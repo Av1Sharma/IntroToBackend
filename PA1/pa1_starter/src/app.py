@@ -1,3 +1,5 @@
+# Create an application that manages all your todos to do
+
 import json
 
 from flask import Flask
@@ -5,6 +7,11 @@ from flask import jsonify
 from flask import request
 
 app = Flask(__name__)
+
+tasks = {
+    1: {"id": 1, "description": "do your homework", "done": False},
+    2: {"id": 2, "description": "go running", "done": False},
+}
 
 
 @app.route("/")
@@ -15,7 +22,6 @@ def hello_world():
 # your routes here
 
 
-# Create an application that manages all your todos to do
 
 # Get all tasks
 # Create a task
