@@ -21,9 +21,12 @@ def hello_world():
 
 # your routes here
 
-
-
 # Get all tasks
+@app.route("/tasks/")
+def get_tasks():
+    res = {"tasks": list(tasks.values())}
+    return json.dumps(res), 200
+
 # Create a task
 # Get a task by ID
 # Update a task
