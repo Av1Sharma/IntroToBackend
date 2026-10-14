@@ -28,6 +28,15 @@ def get_tasks():
     return json.dumps(res), 200
 
 # Create a task
+@app.route("/tasks/", methods = ["POST"])
+def create_task():
+   global task_id_counter
+   body = json.loads(request.data)
+   description = body["description"]
+   task = {"id": task_id_counter, "description": description, "done": False}
+   task[task_id_counter] = task
+   task_id_counter+=1
+   return json.dumps(task), 201
 # Get a task by ID
 # Update a task
 # Delete a task
