@@ -49,6 +49,16 @@ def get_task(task_id):
     return json.dumps(task), 200
     
 # Update a task
+@app.route("/tasks/<int:task_id>/", methods = ["PUT"])
+def update_task():
+    task = tasks.get(task_id)
+    if not task:
+        return json.dumps({"Error": "task not found"}), 404
+    body = json.loads(request.data)
+    task["description"] = body["description"]
+    task["done"] = body["done"]
+    return json.dumps(task), 200
+    
 # Delete a task
 
 
