@@ -50,7 +50,7 @@ def get_task(task_id):
     
 # Update a task
 @app.route("/tasks/<int:task_id>/", methods = ["PUT"])
-def update_task():
+def update_task(task_id):
     task = tasks.get(task_id)
     if not task:
         return json.dumps({"Error": "task not found"}), 404
@@ -61,8 +61,8 @@ def update_task():
 
 # Delete a task
 @app.route("/tasks/<int:task_id>/", methods = ["DELETE"])
-def delete_task():
-    task = tasks.get(task_id)
+def delete_task(task_id):
+    task = tasks.get(task_id, None)
     if not task:
         return json.dumps({"Error": "task not found"}), 404
     del tasks[task_id]
