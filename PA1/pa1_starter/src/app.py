@@ -58,9 +58,15 @@ def update_task():
     task["description"] = body["description"]
     task["done"] = body["done"]
     return json.dumps(task), 200
-    
-# Delete a task
 
+# Delete a task
+@app.route("/tasks/<int:task_id>/", methods = ["DELETE"])
+def delete_task():
+    task = tasks.get(task_id)
+    if not task:
+        return json.dumps({"Error": "task not found"}), 404
+    del tasks[task_id]
+    return json.dumps({"message": "task deleted"}), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
