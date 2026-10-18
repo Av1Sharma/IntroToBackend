@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://127.0.0.1:5000/api/posts/
+method: POST
+body:
+  type: json
+  content: '{"title":"Postman test","link":"https://example.com","username":"avi"}'
+order: 3000

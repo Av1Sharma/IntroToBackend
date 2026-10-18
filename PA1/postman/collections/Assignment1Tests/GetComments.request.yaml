@@ -1,0 +1,4 @@
+$kind: http-request
+url: http://127.0.0.1:5000/api/posts/2/comments/
+method: GET
+order: 5000

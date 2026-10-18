@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://127.0.0.1:5000/api/posts/2/comments/1/
+method: POST
+body:
+  type: json
+  content: '{"text":"Edited Postman comment"}'
+order: 7000

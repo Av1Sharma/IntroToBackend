@@ -1,0 +1,8 @@
+$kind: http-request
+url: http://127.0.0.1:5000/api/extra/posts/
+method: POST
+body:
+  type: json
+  content: |
+    {"title":"Extra test post","link":"https://example.com/extra","username":"avi"}
+order: 9000
