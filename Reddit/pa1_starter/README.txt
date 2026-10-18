@@ -1,7 +1,7 @@
 Name: Avi Sharma
 NetID: as4632
 
-Challenges Attempted: (Tier I, Tier II, Tier III)
+Challenges Attempted: Tier I, Tier II
 
 Difficulties:
 Comments:
