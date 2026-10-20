@@ -476,4 +476,189 @@ def success_response(body, code=200):
     return json.dumps(body), code
 
 def failure_response(message, code=404):
-    return json.dumps({"error":
+    return json.dumps({"error": message}), code
+```
+
+These functions standardize successful and failed API responses.
+
+---
+
+## 17. Flask Routes
+
+### GET All Tasks
+
+```python
+@app.route("/tasks/", methods=["GET"])
+def get_tasks():
+    return success_response(DB.get_all_tasks())
+```
+
+### POST — Create a Task
+
+```python
+@app.route("/tasks/", methods=["POST"])
+def create_task():
+    body = request.get_json()
+    description = body["description"]
+
+    task_id = DB.insert_task_table(description, False)
+    task = DB.get_task_by_id(task_id)
+
+    return success_response(task, 201)
+```
+
+### GET Task by ID
+
+```python
+@app.route("/tasks/<int:task_id>/", methods=["GET"])
+def get_task(task_id):
+    task = DB.get_task_by_id(task_id)
+
+    if task is None:
+        return failure_response("Task not found!")
+
+    return success_response(task)
+```
+
+### POST — Update a Task
+
+The Cornell demo uses `POST` for updates, although `PUT` or `PATCH` is more conventional in REST APIs.
+
+```python
+@app.route("/tasks/<int:task_id>/", methods=["POST"])
+def update_task(task_id):
+    body = request.get_json()
+
+    description = body["description"]
+    done = bool(body["done"])
+
+    task = DB.get_task_by_id(task_id)
+
+    if task is None:
+        return failure_response("Task not found!")
+
+    DB.update_task_by_id(task_id, description, done)
+
+    return success_response(DB.get_task_by_id(task_id))
+```
+
+### DELETE a Task
+
+```python
+@app.route("/tasks/<int:task_id>/", methods=["DELETE"])
+def delete_task(task_id):
+    task = DB.get_task_by_id(task_id)
+
+    if task is None:
+        return failure_response("Task not found!")
+
+    DB.delete_task_by_id(task_id)
+
+    return success_response(task)
+```
+
+---
+
+## 18. HTTP Methods and SQL
+
+| HTTP Method | SQL Action | Purpose |
+|---|---|---|
+| GET | SELECT | Retrieve resources |
+| POST | INSERT | Create a resource |
+| PUT/PATCH | UPDATE | Modify a resource |
+| DELETE | DELETE | Remove a resource |
+
+The Cornell demo uses POST for its task-update route.
+
+---
+
+## 19. Important Concepts to Remember
+
+**Database vs. table**
+
+- Database: A collection of tables.
+- Table: A set of rows and columns.
+- Row: An individual record.
+- Column: An attribute of a record.
+
+**Database connection vs. cursor**
+
+- Connection: Opens and manages access to the database.
+- Cursor: Executes SQL statements and lets us retrieve results.
+
+**Execute vs. commit**
+
+- `execute()` runs a SQL statement.
+- `commit()` saves changes made within a transaction.
+
+**Primary key**
+
+- Identifies a unique row.
+- No two rows can share the same primary-key value.
+
+**SQL placeholders**
+
+- Use `?` for inserting Python variables into SQL queries.
+- Pass the actual values as a tuple.
+- This prevents unsafe direct SQL string construction.
+
+**SQL is persistent**
+
+Unlike storing data in a Python dictionary, SQLite lets data persist in a database file across application restarts.
+
+---
+
+## 20. Quick SQL Cheat Sheet
+
+```sql
+-- Create table
+CREATE TABLE user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    age INTEGER NOT NULL
+);
+
+-- Add data
+INSERT INTO user (name, age)
+VALUES ('Avi', 18);
+
+-- Read everything
+SELECT * FROM user;
+
+-- Read specific columns
+SELECT name, age FROM user;
+
+-- Filter
+SELECT * FROM user WHERE age >= 18;
+
+-- Update
+UPDATE user SET age = 19 WHERE id = 1;
+
+-- Delete a row
+DELETE FROM user WHERE id = 1;
+
+-- Delete the whole table
+DROP TABLE user;
+```
+
+### Most Important Takeaway
+
+The purpose of this lesson is to move from storing backend data in Python dictionaries to storing it in a persistent SQLite database.
+
+Instead of:
+
+```python
+tasks = {1: {"description": "Homework", "done": False}}
+```
+
+We can store tasks in SQLite and interact with them using:
+
+```python
+DB.get_all_tasks()
+DB.get_task_by_id(1)
+DB.insert_task_table("Homework", False)
+DB.update_task_by_id(1, "Study", True)
+DB.delete_task_by_id(1)
+```
+
+This separates **API logic (Flask)** from **database logic (SQLite)** and makes the backend easier to organize and maintain.
