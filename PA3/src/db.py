@@ -35,10 +35,10 @@ class DatabaseDriver(object):
         try:
             self.conn.execute(
                 """
-                CREATE TABLE tasks (
+                CREATE TABLE IF NOT EXISTS tasks (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     description TEXT NOT NULL,
-                    done INTEGER NOT NULL
+                    done BOOLEAN NOT NULL
                 );
             """
             )
