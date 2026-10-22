@@ -19,7 +19,9 @@ def get_tasks():
     """
     Endpoint for getting all tasks
     """
-    return success_response({"tasks": DB.get_all_tasks()})
+    # return success_response({"tasks": DB.get_all_tasks()})
+
+    return json.dumps({"tasks": DB.get_all_tasks()})
 
 @app.route("/tasks/", methods=["POST"])
 def create_task():
@@ -41,9 +43,11 @@ def get_task(task_id):
     """
     task = DB.get_task_by_id(task_id)
     if task is None:
-        return failure_response("Task not found!")
+        return json.dumps({"error": "Task not found!"}), 404
+        # return failure_response("Task not found!")
     task["subtasks"] = DB.get_subtasks_of_task(task_id)
-    return success_response(task)
+    return json.dumps(task), 200
+    # return success_response(task)
     
 @app.route("/tasks/<int:task_id>/", methods=["POST"])
 def update_task(task_id):
@@ -57,8 +61,11 @@ def update_task(task_id):
 
     task = DB.get_task_by_id(task_id)
     if task is None:
-        return failure_response("Task not found!")
-    return success_response(task)
+        return json.dumps({"error": "Task not found!"}), 404
+        # return failure_response("Task not found!")
+
+    return json.dumps(task), 200
+    # return success_response(task)
 
 @app.route("/tasks/<int:task_id>/", methods=["DELETE"])
 def delete_task(task_id):
@@ -67,9 +74,12 @@ def delete_task(task_id):
     """
     task = DB.get_task_by_id(task_id)
     if task is None:
-        return failure_response("Task not found!")
+        return json.dumps({"error": "Task not found!"}), 404
+        # return failure_response("Task not found!")
     DB.delete_task_by_id(task_id)
-    return success_response(task)
+    # return success_response(task)
+    return json.dumps(task), 200
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)
