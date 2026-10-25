@@ -1,5 +1,5 @@
-import json
-from flask import Flask, request
+import math
+from flask import Flask, jsonify, request
 import db
 
 DB = db.DatabaseDriver()
@@ -11,14 +11,14 @@ def success_response(body, code=200):
     """
     Generalized success response format returning JSON and status code.
     """
-    return json.dumps(body), code
+    return jsonify(body), code
 
 
 def failure_response(message, code=404):
     """
     Generalized failure response format returning an error message and status code.
     """
-    return json.dumps({"error": message}), code
+    return jsonify({"error": message}), code
 
 
 @app.route("/")
@@ -44,13 +44,19 @@ def create_user():
     Endpoint for creating a new user.
     Requires name and username, with balance defaulting to 0 if not provided.
     """
-    body = json.loads(request.data)
+    body = request.get_json(force=True, silent=True)
+    if not isinstance(body, dict):
+        return failure_response("Request body must be a JSON object.", 400)
     name = body.get("name")
     username = body.get("username")
     balance = body.get("balance", 0)
 
-    if not name or not username:
+    if (not isinstance(name, str) or not name.strip()
+            or not isinstance(username, str) or not username.strip()):
         return failure_response("Name and username must be provided.", 400)
+
+    if type(balance) is not int or balance < 0:
+        return failure_response("Balance must be a non-negative integer.", 400)
 
     user_id = DB.insert_user_table(name, username, balance)
     user = DB.get_user_by_id(user_id)
@@ -90,7 +96,9 @@ def send_money():
     Endpoint for sending money from one user to another.
     Updates the balances of both sender and receiver.
     """
-    body = json.loads(request.data)
+    body = request.get_json(force=True, silent=True)
+    if not isinstance(body, dict):
+        return failure_response("Request body must be a JSON object.", 400)
     sender_id = body.get("sender_id")
     receiver_id = body.get("receiver_id")
     amount = body.get("amount")
@@ -101,8 +109,12 @@ def send_money():
             "sender_id, receiver_id, and amount must all be provided.", 400
         )
 
-    # Validate that amount is non-negative
-    if not isinstance(amount, (int, float)) or amount < 0:
+    if type(sender_id) is not int or type(receiver_id) is not int:
+        return failure_response("Sender and receiver IDs must be integers.", 400)
+
+    # Reject negative amounts, booleans, and non-finite numbers.
+    if (type(amount) not in (int, float) or amount < 0
+            or (type(amount) is float and not math.isfinite(amount))):
         return failure_response("Amount must be a non-negative number.", 400)
 
     sender = DB.get_user_by_id(sender_id)
@@ -118,12 +130,8 @@ def send_money():
             "Sender does not have sufficient balance to send this amount.", 400
         )
 
-    # Transfer funds
-    new_sender_balance = sender["balance"] - amount
-    new_receiver_balance = receiver["balance"] + amount
-
-    DB.update_user_balance(sender_id, new_sender_balance)
-    DB.update_user_balance(receiver_id, new_receiver_balance)
+    # Keep both updates together; sending to yourself leaves the balance unchanged.
+    DB.transfer_money(sender_id, receiver_id, amount)
 
     return success_response(
         {

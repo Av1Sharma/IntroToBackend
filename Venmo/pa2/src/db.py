@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import sqlite3
 
 
@@ -25,7 +25,9 @@ class DatabaseDriver(object):
         Secures a connection with the database and stores it into the
         instance variable `conn`, then ensures the user table is created.
         """
-        self.conn = sqlite3.connect("venmo.db", check_same_thread=False)
+        self.conn = sqlite3.connect(
+            Path(__file__).resolve().parent / "venmo.db", check_same_thread=False
+        )
         self.create_user_table()
 
     def create_user_table(self):
@@ -33,19 +35,17 @@ class DatabaseDriver(object):
         Using SQL, creates the users table if it does not already exist.
         Stores id, name, username, and balance.
         """
-        try:
-            self.conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    username TEXT NOT NULL,
-                    balance INTEGER NOT NULL DEFAULT 0
-                );
-                """
-            )
-        except Exception as e:
-            print(e)
+        self.conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                username TEXT NOT NULL,
+                balance INTEGER NOT NULL DEFAULT 0
+            );
+            """
+        )
+        self.conn.commit()
 
     def delete_user_table(self):
         """
@@ -110,6 +110,18 @@ class DatabaseDriver(object):
             (balance, user_id),
         )
         self.conn.commit()
+
+    def transfer_money(self, sender_id, receiver_id, amount):
+        """Debit and credit users in one transaction, including self-transfers."""
+        with self.conn:
+            self.conn.execute(
+                "UPDATE users SET balance = balance - ? WHERE id = ?;",
+                (amount, sender_id),
+            )
+            self.conn.execute(
+                "UPDATE users SET balance = balance + ? WHERE id = ?;",
+                (amount, receiver_id),
+            )
 
 
 # Only <=1 instance of the database driver exists within the app at all times
