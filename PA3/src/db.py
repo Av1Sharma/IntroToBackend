@@ -108,6 +108,70 @@ class DatabaseDriver(object):
 
 #-- SUBTASKS --------------------------------------------------------
 
+    def create_subtask_table(self):
+        """
+        Using SQL, creates a subtask table
+        """
+        self.conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS subtask (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    description TEXT NOT NULL,
+                    done BOOLEAN NOT NULL,
+                    task_id INTEGER NOT NULL,
+                    FOREIGN KEY (task_id) REFERENCES tasks(id)
+                );
+            """
+            )
+    def insert_subtask(self, description, done, task_id):
+        """
+        Using SQL, adds a new subtask in the subtask table
+        """
+        cursor = self.conn.execute(
+            """
+            INSERT INTO subtask (description, done, task_id) VALUES (?, ?, ?);
+            """,
+            (description, done, task_id)
+        )
+
+        self.conn.execute.commit()
+        return cursor.lastrowid
+
+    def get_subtask_by_task_id(self, id):
+        """
+        Using SQL, gets all subtasks for a specific task
+        """
+        cursor = self.conn.execute(
+            """
+            SELECT * FROM subtask WHERE task_id = ?;
+            """,
+            (id,)
+        )
+        for row in cursor:
+            return
+            {"id": row[0], 
+            "description": row[1], 
+            "done": bool(row[2]), 
+            "task_id": row[3]
+            }
+        return None
+
+
+    def get_subtask_by_id(self, id):
+        """
+        Using SQL, gets a subtask by id
+        """
+        cursor = self.conn.execute(
+            """
+            SELECT * FROM subtask WHERE id = ?;
+            """,
+            (id,)
+        )
+        for row in cursor:
+            return {"id": row[0], "description": row[1], "done": bool(row[2]), "task_id": row[3]}
+        return None
+    
+
 
 # Only <=1 instance of the database driver
 # exists within the app at all times
