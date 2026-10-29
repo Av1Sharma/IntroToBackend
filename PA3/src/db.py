@@ -171,6 +171,33 @@ class DatabaseDriver(object):
             return {"id": row[0], "description": row[1], "done": bool(row[2]), "task_id": row[3]}
         return None
     
+    def get_subtasks_of_task(self, id):
+        """
+        Using SQL, gets all subtasks for a specific task
+        """
+        cursor = self.conn.execute(
+            """
+            SELECT * FROM subtask WHERE task_id = ?;
+            """,
+            (id,)
+        )
+        subtasks = []
+        for row in cursor:
+            subtasks.append({"id": row[0], "description": row[1], "done": bool(row[2]), "task_id": row[3]})
+        return subtasks
+
+    def get_all_tasks(self):
+        """
+        Using SQL, return all tasks in table
+        """
+
+        cursor = self.conn.execute(
+            "SELECT * FROM tasks;"
+        )
+        tasks = []
+        for row in cursor:
+            tasks.append({"id": row[0], "description": row[1], "done": bool(row[2]), "subtasks": self.get_subtasks_of_task(row[0])})
+        return tasks
 
 
 # Only <=1 instance of the database driver
