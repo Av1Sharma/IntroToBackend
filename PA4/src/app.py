@@ -1,6 +1,6 @@
 import json
 
-from db import db, task, Subtask
+from db import db, Task, Subtask, Category
 from flask import Flask, request
 
 # define db filename
@@ -119,7 +119,21 @@ def assign_category(task_id):
     Endpoint for assigning a category
     to a task by id
     """
-    pass
+    task = Task.query.filter_by(id=task_id).first()
+    if task is None:
+        return failure_response("Task not found!")
+
+    body = json.loads(request.data)
+    description = body.get("description")
+    color = body.get("color")
+
+    category = Category.query.filter_by(color=color).first()
+    if category is None:
+        category = Category(description=description, color=color)
+
+    task.categories.append(category)
+    db.session.commit()
+    return success_response(task.serialize())
 
 
 if __name__ == "__main__":
