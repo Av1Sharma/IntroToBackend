@@ -15,6 +15,7 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement = True)
     description = db.Column(db.String, nullable=True)
     done = db.Column(db.Boolean, nullable=False)
+    subtasks = db.relationship("Subtask", cascade="delete")
 
     def __init__(sef, **kwargs):
         """

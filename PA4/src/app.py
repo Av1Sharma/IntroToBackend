@@ -30,35 +30,34 @@ def get_tasks():
     """
     Endpoint for getting all tasks
     """
-    # return success_response({"tasks": DB.get_all_tasks()})
+    tasks = []
 
-    return json.dumps({"tasks": DB.get_all_tasks()})
+    for task in Task.query.all():
+        tasks.append(task.serialize())
 
+    return success_response({"tasks": tasks})
+    
 @app.route("/tasks/", methods=["POST"])
 def create_task():
     """
     Endpoint for creating a new task
     """
     body = json.loads(request.data)
-    description = body.get("description")
-    task_id = DB.insert_task_table(description, False)
-    task = DB.get_task_by_id(task_id)
-    if task is None:
-        return failure_response("Could not create task.", 400)
-    return success_response(task, 201)
+    new_task = Task(description=body.get("description"), done = body.get("done"))
+    db.session.add(new_task)
+    db.session.commit()
+    return success_response(new_task.serialize(), 201)
+
 
 @app.route("/tasks/<int:task_id>/")
 def get_task(task_id):
     """
     Endpoint for getting a task by id
     """
-    task = DB.get_task_by_id(task_id)
+    task = task.query.filter_by(id=task_id).first()
     if task is None:
-        return json.dumps({"error": "Task not found!"}), 404
-        # return failure_response("Task not found!")
-    task["subtasks"] = DB.get_subtasks_of_task(task_id)
-    return json.dumps(task), 200
-    # return success_response(task)
+        return failure_response("Task not found!", 404)
+    return success_response(task.serialize())
     
 @app.route("/tasks/<int:task_id>/", methods=["POST"])
 def update_task(task_id):
@@ -66,30 +65,25 @@ def update_task(task_id):
     Endpoint for updating a task by id
     """
     body = json.loads(request.data)
-    description = body.get("description")
-    done = body.get("done")
-    DB.update_task_by_id(task_id, description, done)
-
-    task = DB.get_task_by_id(task_id)
+    task = Task.query.filter_by(id=task_id).first()
     if task is None:
-        return json.dumps({"error": "Task not found!"}), 404
-        # return failure_response("Task not found!")
-
-    return json.dumps(task), 200
-    # return success_response(task)
+        return failure_response("Task not found!", 404)
+    task.description = body.get("description", task.description)
+    task.done = body.get("done", task.done)
+    db.session.commit()
+    return success_response(task.serialize())
 
 @app.route("/tasks/<int:task_id>/", methods=["DELETE"])
 def delete_task(task_id):
     """
     Endpoint for deleting a task by id
     """
-    task = DB.get_task_by_id(task_id)
+    task = Task.query.filter_by(id=task_id).first()
     if task is None:
-        return json.dumps({"error": "Task not found!"}), 404
-        # return failure_response("Task not found!")
-    DB.delete_task_by_id(task_id)
-    # return success_response(task)
-    return json.dumps(task), 200
+        return failure_response("Task not found!", 404)
+    db.session.delete(task)
+    db.session.commit()
+    return success_response(task.serialize())
 
 # -- SUBTASK ROUTES ---------------------------------------------------
 
@@ -102,17 +96,18 @@ def create_subtask(task_id):
     """
     
     
-    self.conn.execute(
-        """
-            CREATE TABLE IF NOT EXISTS subtask (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            description TEXT NOT NULL,
-            done BOOLEAN NOT NULL,
-            task_id INTEGER NOT NULL,
-            FOREIGN KEY (task_id) REFERENCES task(id)
-            )
-        """
+    task = Task.query.filter_by(id=task_id).first()
+    if task is None:
+        return failure_response("Task not found!", 404)
+    body = json.loads(request.data)
+    subtask = Subtask(
+        description = body.get("description"),
+        done = body.get("done"),
+        task_id = task_id
     )
+    db.session.add(subtask)
+    db.session.commit()
+    return success_response(subtask.serialize(), 201)
 
 
 # -- CATEGORY ROUTES --------------------------------------------------
