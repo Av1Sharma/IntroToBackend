@@ -4,11 +4,20 @@ db = SQLAlchemy()
 
 # implement database model classes
 
+# Association table for the many-to-many relationship between Tasks and Categories
+association_table = db.Table(
+    "association",
+    db.Model.metadata,
+    db.Column("task_id", db.Integer, db.ForeignKey("tasks.id")),
+    db.Column("category_id", db.Integer, db.ForeignKey("categories.id"))
+)
+
+
 class Task(db.Model):
     """
     Task Model
     Has a one-to-many relationship with the Subtask Model
-    Has a many-to-many relationsjip with the Category Model
+    Has a many-to-many relationship with the Category Model
     """
 
     __tablename__ = "tasks"
@@ -16,8 +25,9 @@ class Task(db.Model):
     description = db.Column(db.String, nullable=True)
     done = db.Column(db.Boolean, nullable=False)
     subtasks = db.relationship("Subtask", cascade="delete")
+    categories = db.relationship("Category", secondary=association_table, back_populates="tasks")
 
-    def __init__(sef, **kwargs):
+    def __init__(self, **kwargs):
         """
         Initialize Task object/entry
         """
@@ -29,7 +39,9 @@ class Task(db.Model):
         return {
             "id": self.id,
             "description": self.description,
-            "done": self.done
+            "done": self.done,
+            "subtasks": [s.serialize() for s in self.subtasks],
+            "categories": [c.simpleserialize() for c in self.categories]
         }
 
 
@@ -42,7 +54,7 @@ class Subtask(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement = True)
     description = db.Column(db.String, nullable = False)
     done = db.Column(db.Boolean, nullable = False)
-    task_id = db.Column(db.Integer, db.ForeignKey("tasks_id"), nullable = False)
+    task_id = db.Column(db.Integer, db.ForeignKey("tasks.id"), nullable = False)
 
     def __init__(self, **kwargs):
         """
@@ -66,6 +78,35 @@ class Category(db.Model):
     Category Model
     Has a many-to-many relationship with the Task Model
     """
+    __tablename__ = "categories"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    color = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, nullable=False)
+    tasks = db.relationship("Task", secondary=association_table, back_populates="categories")
+
+    def __init__(self, **kwargs):
+        """
+        Initialize Category object/entry
+        """
+        self.description = kwargs.get("description", "")
+        self.color = kwargs.get("color", "")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "description": self.description,
+            "color": self.color,
+            "tasks": [t.serialize() for t in self.tasks]
+        }
+
+    def simple_serialize(self):
+        return {
+            "id": self.id,
+            "description": self.description,
+            "color": self.color,
+        }
+
+
 
 
 class Tag(db.Model):
