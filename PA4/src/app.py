@@ -1,7 +1,7 @@
 import json
 
-from db import db
-from flask import Flask
+from db import db, task, Subtask
+from flask import Flask, request
 
 # define db filename
 db_filename = "todo.db"
